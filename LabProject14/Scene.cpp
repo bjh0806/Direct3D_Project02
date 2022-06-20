@@ -8,46 +8,32 @@
 
 CScene::CScene()
 {
-
 	m_pd3dGraphicsRootSignature = NULL;
-
 }
-
 
 CScene::~CScene()
 {
 }
 
 void CScene::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList) {
-
+	
 		m_pd3dGraphicsRootSignature = CreateGraphicsRootSignature(pd3dDevice);
-		//지형을 확대할 스케일 벡터이다. x-축과 z-축은 8배, y-축은 2배 확대한다.
+		
 		XMFLOAT3 xmf3Scale(8.0f, 4.0f, 8.0f); XMFLOAT4 xmf4Color(0.0f, 0.2f, 0.0f, 0.0f);
 
-		//지형을 높이 맵 이미지 파일(HeightMap.raw)을 사용하여 생성한다. 높이 맵의 크기는 가로x세로(257x257)이다.
-
 #ifdef _WITH_TERRAIN_PARTITION 
-		/*
-		하나의 격자 메쉬의 크기는 가로x세로(17x17)이다.
-		지형 전체는 가로 방향으로 16개, 세로 방향으로 16의 격자 메 쉬를 가진다.
-		지형을 구성하는 격자 메쉬의 개수는 총 256(16x16)개가 된다.
-		*/
 		m_pTerrain = new CHeightMapTerrain(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, _T("../Assets/Image/Terrain/HeightMap.raw"), 257, 257, 17, 17, xmf3Scale, xmf4Color);
 #else
-		//지형을 하나의 격자 메쉬(257x257)로 생성한다. 
 		m_pTerrain = new CHeightMapTerrain(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, _T("../Assets/Image/Terrain/HeightMap.raw"), 257, 257, 257, 257, xmf3Scale, xmf4Color);
 #endif
 		m_nShaders = 1;
 		m_pShaders = new CObjectsShader[m_nShaders]
 			; m_pShaders[0].CreateShader(pd3dDevice, m_pd3dGraphicsRootSignature);
 		m_pShaders[0].BuildObjects(pd3dDevice, pd3dCommandList, m_pTerrain);
-
 }
-
 
 void CScene::ReleaseObjects()
 {
-
 	if (m_pd3dGraphicsRootSignature) 
 		m_pd3dGraphicsRootSignature->Release();
 
@@ -61,7 +47,6 @@ void CScene::ReleaseObjects()
 
 	if (m_pTerrain) 
 		delete m_pTerrain;
-
 }
 
 bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
@@ -92,12 +77,8 @@ void CScene::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera
 	{
 		m_pShaders[i].Render(pd3dCommandList, pCamera);
 	}
-
 }
 
-
-
-/* 따라하기 7번 추가 */
 void CScene::ReleaseUploadBuffers() { 
 
 	for (int i = 0; i < m_nShaders; i++) 
@@ -105,22 +86,19 @@ void CScene::ReleaseUploadBuffers() {
 
 	if (m_pTerrain)
 		m_pTerrain->ReleaseUploadBuffers();
-
 }
+
 void CScene::AnimateObjects(float fTimeElapsed) { 
 
 	for (int i = 0; i < m_nShaders; i++) 
 	{ 
 		m_pShaders[i].AnimateObjects(fTimeElapsed); 
 	} 
-
 }
-
 
 ID3D12RootSignature *CScene::GetGraphicsRootSignature() { 
 
 	return(m_pd3dGraphicsRootSignature); 
-
 }
 
 ID3D12RootSignature *CScene::CreateGraphicsRootSignature(ID3D12Device *pd3dDevice) {
@@ -159,10 +137,7 @@ ID3D12RootSignature *CScene::CreateGraphicsRootSignature(ID3D12Device *pd3dDevic
 	if (pd3dErrorBlob) pd3dErrorBlob->Release();
 	
 	return(pd3dGraphicsRootSignature);
-
 }
-
-/////////////////////////////////////////////////////////
 
 CTerrainShader::CTerrainShader() { 
 
@@ -186,19 +161,16 @@ D3D12_INPUT_LAYOUT_DESC CTerrainShader::CreateInputLayout() {
 	d3dInputLayoutDesc.NumElements = nInputElementDescs;
 
 	return(d3dInputLayoutDesc);
-
 }
 
 D3D12_SHADER_BYTECODE CTerrainShader::CreateVertexShader(ID3DBlob **ppd3dShaderBlob) { 
 	
 	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSDiffused", "vs_5_1", ppd3dShaderBlob)); 
-
 }
 
 D3D12_SHADER_BYTECODE CTerrainShader::CreatePixelShader(ID3DBlob **ppd3dShaderBlob) {
 	
 	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "PSDiffused", "ps_5_1", ppd3dShaderBlob)); 
-
 }
 
 void CTerrainShader::CreateShader(ID3D12Device *pd3dDevice, ID3D12RootSignature *pd3dGraphicsRootSignature) {
@@ -207,6 +179,5 @@ void CTerrainShader::CreateShader(ID3D12Device *pd3dDevice, ID3D12RootSignature 
 	m_ppd3dPipelineStates = new ID3D12PipelineState*[m_nPipelineStates];
 
 	CShader::CreateShader(pd3dDevice, pd3dGraphicsRootSignature);
-
 }
 

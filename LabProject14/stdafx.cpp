@@ -1,11 +1,4 @@
-// stdafx.cpp : 표준 포함 파일만 들어 있는 소스 파일입니다.
-// LabProject09.pch는 미리 컴파일된 헤더가 됩니다.
-// stdafx.obj에는 미리 컴파일된 형식 정보가 포함됩니다.
-
 #include "stdafx.h"
-
-// TODO: 필요한 추가 헤더는
-// 이 파일이 아닌 STDAFX.H에서 참조합니다.
 
 ID3D12Resource *CreateBufferResource(
 	ID3D12Device *pd3dDevice,
@@ -62,12 +55,10 @@ ID3D12Resource *CreateBufferResource(
 		{
 			if (ppd3dUploadBuffer)
 			{
-				//업로드 버퍼를 생성한다.
 				d3dHeapPropertiesDesc.Type = D3D12_HEAP_TYPE_UPLOAD;
 
 				pd3dDevice->CreateCommittedResource(&d3dHeapPropertiesDesc, D3D12_HEAP_FLAG_NONE, &d3dResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, NULL, __uuidof(ID3D12Resource), (void **)ppd3dUploadBuffer);
 
-				//업로드 버퍼를 매핑하여 초기화 데이터를 업로드 버퍼에 복사한다. 
 				D3D12_RANGE d3dReadRange = { 0, 0 };
 				UINT8 *pBufferDataBegin = NULL;
 				(*ppd3dUploadBuffer)->Map(0, &d3dReadRange, (void **)&pBufferDataBegin);
@@ -91,7 +82,6 @@ ID3D12Resource *CreateBufferResource(
 		}
 		case D3D12_HEAP_TYPE_READBACK:
 			break;
-
 		}
 	}
 

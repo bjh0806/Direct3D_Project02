@@ -42,6 +42,8 @@
 
 #include <Mmsystem.h>
 
+#include <random>
+
 using namespace DirectX;
 using namespace DirectX::PackedVector;
 using Microsoft::WRL::ComPtr;

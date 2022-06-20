@@ -4,6 +4,11 @@
 #include "Camera.h"
 #include "Mesh.h"
 
+std::random_device rd;
+std::default_random_engine dre(rd());
+std::uniform_real_distribution<> uid_position_x{ 0, 2056 };
+std::uniform_real_distribution<> uid_position_z{ 0, 2056 };
+
 CShader::~CShader() 
 { 
 
@@ -17,16 +22,12 @@ CShader::~CShader()
 	} 
 
 }
-
-
-//래스터라이저 상태를 설정하기 위한 구조체를 반환한다. 
+ 
 D3D12_RASTERIZER_DESC CShader::CreateRasterizerState() {
 
 	D3D12_RASTERIZER_DESC d3dRasterizerDesc; 
 	::ZeroMemory(&d3dRasterizerDesc, sizeof(D3D12_RASTERIZER_DESC)); 
 
-	//D3D12_FILL_MODE_WIREFRAME은 프리미티브(삼각형)의 내부를 칠하지 않고 변(Edge)만 그린다. 
-	//d3dRasterizerDesc.FillMode = D3D12_FILL_MODE_WIREFRAME;
 	d3dRasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
 	d3dRasterizerDesc.CullMode = D3D12_CULL_MODE_BACK;
 	d3dRasterizerDesc.FrontCounterClockwise = FALSE; 
@@ -42,16 +43,13 @@ D3D12_RASTERIZER_DESC CShader::CreateRasterizerState() {
 	return(d3dRasterizerDesc);
 }
 
-//깊이-스텐실 검사를 위한 상태를 설정하기 위한 구조체를 반환한다.
 D3D12_DEPTH_STENCIL_DESC CShader::CreateDepthStencilState() { 
 
 	D3D12_DEPTH_STENCIL_DESC d3dDepthStencilDesc; 
 	::ZeroMemory(&d3dDepthStencilDesc, sizeof(D3D12_DEPTH_STENCIL_DESC)); 
 	
-	//깊이-검사를 하지 않으므로 여러 개의 객체들이 겹쳐지는 것처럼 그려진다. 
 	d3dDepthStencilDesc.DepthEnable = TRUE;
 
-	//d3dDepthStencilDesc.DepthEnable = TRUE;
 	d3dDepthStencilDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL; 
 	d3dDepthStencilDesc.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
 
@@ -70,10 +68,8 @@ D3D12_DEPTH_STENCIL_DESC CShader::CreateDepthStencilState() {
 	d3dDepthStencilDesc.BackFace.StencilFunc = D3D12_COMPARISON_FUNC_NEVER;
 
 	return(d3dDepthStencilDesc);
-
 }
 
-//블렌딩 상태를 설정하기 위한 구조체를 반환한다.
 D3D12_BLEND_DESC CShader::CreateBlendState() { 
 	
 	D3D12_BLEND_DESC d3dBlendDesc; 
@@ -94,10 +90,8 @@ D3D12_BLEND_DESC CShader::CreateBlendState() {
 	d3dBlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 
 	return(d3dBlendDesc);
-
 }
-
-//입력 조립기에게 정점 버퍼의 구조를 알려주기 위한 구조체를 반환한다. 
+ 
 D3D12_INPUT_LAYOUT_DESC CShader::CreateInputLayout() { 
 
 	D3D12_INPUT_LAYOUT_DESC d3dInputLayoutDesc;
@@ -106,10 +100,8 @@ D3D12_INPUT_LAYOUT_DESC CShader::CreateInputLayout() {
 	d3dInputLayoutDesc.NumElements = 0;
 
 	return(d3dInputLayoutDesc);
-
 }
 
-//정점 셰이더 바이트 코드를 생성(컴파일)한다. 
 D3D12_SHADER_BYTECODE CShader::CreateVertexShader(ID3DBlob **ppd3dShaderBlob) {
 
 	D3D12_SHADER_BYTECODE d3dShaderByteCode; 
@@ -118,10 +110,8 @@ D3D12_SHADER_BYTECODE CShader::CreateVertexShader(ID3DBlob **ppd3dShaderBlob) {
 	d3dShaderByteCode.pShaderBytecode = NULL;
 
 	return(d3dShaderByteCode);
-
 }
 
-//픽셀 셰이더 바이트 코드를 생성(컴파일)한다. 
 D3D12_SHADER_BYTECODE CShader::CreatePixelShader(ID3DBlob **ppd3dShaderBlob) { 
 
 	D3D12_SHADER_BYTECODE d3dShaderByteCode; 
@@ -130,10 +120,8 @@ D3D12_SHADER_BYTECODE CShader::CreatePixelShader(ID3DBlob **ppd3dShaderBlob) {
 	d3dShaderByteCode.pShaderBytecode = NULL;
 
 	return(d3dShaderByteCode);
-
 }
 
-//셰이더 소스 코드를 컴파일하여 바이트 코드 구조체를 반환한다. 
 D3D12_SHADER_BYTECODE CShader::CompileShaderFromFile(WCHAR *pszFileName, LPCSTR pszShaderName, LPCSTR pszShaderProfile, ID3DBlob **ppd3dShaderBlob) { 
 	
 	UINT nCompileFlags = 0; 
@@ -149,10 +137,8 @@ D3D12_SHADER_BYTECODE CShader::CompileShaderFromFile(WCHAR *pszFileName, LPCSTR 
 	d3dShaderByteCode.pShaderBytecode = (*ppd3dShaderBlob)->GetBufferPointer();
 
 	return(d3dShaderByteCode);
-
 }
 
-//그래픽스 파이프라인 상태 객체를 생성한다. 
 void CShader::CreateShader(ID3D12Device *pd3dDevice, ID3D12RootSignature *pd3dGraphicsRootSignature) {
 	
 	ID3DBlob *pd3dVertexShaderBlob = NULL, *pd3dPixelShaderBlob = NULL;
@@ -182,28 +168,26 @@ void CShader::CreateShader(ID3D12Device *pd3dDevice, ID3D12RootSignature *pd3dGr
 	if (pd3dPixelShaderBlob) pd3dPixelShaderBlob->Release();
 	if (d3dPipelineStateDesc.InputLayout.pInputElementDescs) 
 		delete[] d3dPipelineStateDesc.InputLayout.pInputElementDescs;
-
 }
 
 void CShader::OnPrepareRender(ID3D12GraphicsCommandList *pd3dCommandList) { 
 
-	//파이프라인에 그래픽스 상태 객체를 설정한다.
 	pd3dCommandList->SetPipelineState(m_ppd3dPipelineStates[0]); 
-
 }
 
 void CShader::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera) {
 	
 	OnPrepareRender(pd3dCommandList);
-
 }
 
 void CShader::CreateShaderVariables(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList) {
 
 }
+
 void CShader::UpdateShaderVariables(ID3D12GraphicsCommandList *pd3dCommandList) {
 
 }
+
 void CShader::UpdateShaderVariable(ID3D12GraphicsCommandList *pd3dCommandList, XMFLOAT4X4 *pxmf4x4World) { 
 	
 	XMFLOAT4X4 xmf4x4World;
@@ -211,15 +195,11 @@ void CShader::UpdateShaderVariable(ID3D12GraphicsCommandList *pd3dCommandList, X
 	XMStoreFloat4x4(&xmf4x4World, XMMatrixTranspose(XMLoadFloat4x4(pxmf4x4World)));
 
 	pd3dCommandList->SetGraphicsRoot32BitConstants(0, 16, &xmf4x4World, 0);
-
 }
 
 void CShader::ReleaseShaderVariables() { 
 
 }
-
-
-/////////////////////////////////////////////////////////////
 
 CPlayerShader::CPlayerShader(){ 
 
@@ -244,19 +224,16 @@ D3D12_INPUT_LAYOUT_DESC CPlayerShader::CreateInputLayout() {
 	d3dInputLayoutDesc.NumElements = nInputElementDescs;
 	
 	return(d3dInputLayoutDesc);
-
 }
 
 D3D12_SHADER_BYTECODE CPlayerShader::CreateVertexShader(ID3DBlob **ppd3dShaderBlob) {
 	
 	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSDiffused", "vs_5_1", ppd3dShaderBlob)); 
-
 }
 
 D3D12_SHADER_BYTECODE CPlayerShader::CreatePixelShader(ID3DBlob **ppd3dShaderBlob) {
 	
 	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "PSDiffused", "ps_5_1", ppd3dShaderBlob));
-
 }
 
 void CPlayerShader::CreateShader(ID3D12Device *pd3dDevice, ID3D12RootSignature *pd3dGraphicsRootSignature) {
@@ -265,10 +242,7 @@ void CPlayerShader::CreateShader(ID3D12Device *pd3dDevice, ID3D12RootSignature *
 	m_ppd3dPipelineStates = new ID3D12PipelineState*[m_nPipelineStates];
 	
 	CShader::CreateShader(pd3dDevice, pd3dGraphicsRootSignature);
-
 }
-
-/////////////////////////////////////////////////////////////
 
 D3D12_INPUT_LAYOUT_DESC CObjectsShader::CreateInputLayout() {
 
@@ -285,19 +259,16 @@ D3D12_INPUT_LAYOUT_DESC CObjectsShader::CreateInputLayout() {
 	d3dInputLayoutDesc.NumElements = nInputElementDescs;
 
 	return(d3dInputLayoutDesc);
-
 }
 
 D3D12_SHADER_BYTECODE CObjectsShader::CreateVertexShader(ID3DBlob **ppd3dShaderBlob) { 
 	
 	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSDiffused", "vs_5_1", ppd3dShaderBlob));
-
 }
 
 D3D12_SHADER_BYTECODE CObjectsShader::CreatePixelShader(ID3DBlob **ppd3dShaderBlob) {
 
 	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "PSDiffused", "ps_5_1", ppd3dShaderBlob));
-
 }
 
 void CObjectsShader::CreateShader(ID3D12Device *pd3dDevice, ID3D12RootSignature *pd3dGraphicsRootSignature) {
@@ -307,65 +278,43 @@ void CObjectsShader::CreateShader(ID3D12Device *pd3dDevice, ID3D12RootSignature 
 	m_ppd3dPipelineStates = new ID3D12PipelineState*[m_nPipelineStates];
 
 	CShader::CreateShader(pd3dDevice, pd3dGraphicsRootSignature);
-
 }
+
+CHeightMapTerrain* pMap;
 
 void CObjectsShader::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, void *pContext) {
 
-	CHeightMapTerrain *pTerrain = (CHeightMapTerrain *)pContext; 
+	CHeightMapTerrain *pTerrain = (CHeightMapTerrain *)pContext;
+	pMap = pTerrain;
+
+	m_nItemObjects = 100;
+	m_ppItemObjects = new CGameObject * [m_nItemObjects];
+
+	CCubeMeshDiffused* pItemMesh = new CCubeMeshDiffused(pd3dDevice, pd3dCommandList, 6.0f, 6.0f, 6.0f);
+	CRotatingObject* pItemObject = NULL;
+
+	for (int i = 0; i < m_nItemObjects; ++i) {
+		pItemObject = new CRotatingObject(1);
+		pItemObject->SetMesh(0, pItemMesh);
+		pItemObject->SetPosition(uid_position_x(dre), 500.0f, uid_position_z(dre));
+		m_ppItemObjects[i] = pItemObject;
+	}
 	
-	float fTerrainWidth = pTerrain->GetWidth(), fTerrainLength = pTerrain->GetLength();
-	float fxPitch = 12.0f * 3.5f;
-	float fyPitch = 12.0f * 3.5f; 
-	float fzPitch = 12.0f * 3.5f; 
-	
-	//직육면체를 지형 표면에 그리고 지형보다 높은 위치에 일정한 간격으로 배치한다.
-	//int xObjects = int(fTerrainWidth / fxPitch), yObjects = 2, zObjects = int(fTerrainLength / fzPitch); 
-	//
-	//m_nObjects = xObjects * yObjects * zObjects;
-	//m_ppObjects = new CGameObject*[m_nObjects];
+	m_nObjects = 10;
+	m_ppObjects = new CGameObject * [m_nObjects];
 
-	//CCubeMeshDiffused *pCubeMesh = new CCubeMeshDiffused(pd3dDevice, pd3dCommandList, 12.0f, 12.0f, 12.0f);
+	CAirplaneMeshDiffused* pCubeMesh = new CAirplaneMeshDiffused(pd3dDevice, pd3dCommandList, 20.0f, 20.0f, 4.0f);
+	CRotatingObject *pRotatingObject = NULL;
 
-	//XMFLOAT3 xmf3RotateAxis, xmf3SurfaceNormal; 
-	//CRotatingObject *pRotatingObject = NULL; 
-	//for (int i = 0, x = 0; x < xObjects; x++) 
-	//{
-	//	for (int z = 0; z < zObjects; z++)
-	//	{
-	//		for (int y = 0; y < yObjects; y++)
-	//		{
-	//			pRotatingObject = new CRotatingObject(1);
-	//			pRotatingObject->SetMesh(0, pCubeMesh); 
+	for (int i = 0; i < 10; ++i) {
+		pRotatingObject = new CRotatingObject(1);
+		pRotatingObject->SetMesh(0, pCubeMesh);
+		pRotatingObject->Rotate(90.0f, 0.0f, 0.0f);
+		pRotatingObject->SetPosition(uid_position_x(dre), 500.0f, uid_position_z(dre));
+		m_ppObjects[i] = pRotatingObject;
+	}
 
-	//			float xPosition = x * fxPitch;
-	//			float zPosition = z * fzPitch;
-	//			float fHeight = pTerrain->GetHeight(xPosition, zPosition);
-	//			
-	//			pRotatingObject->SetPosition(xPosition, fHeight + (y * 10.0f * fyPitch) + 6.0f, zPosition);
-	//			if (y == 0)
-	//			{ 
-	//				/*
-	//					지형의 표면에 위치하는 직육면체는 지형의 기울기에 따라 방향이 다르게 배치한다. 
-	//					직육면체가 위치할 지형의 법선 벡터 방향과 직육면체의 y-축이 일치하도록 한다.
-	//				*/ 
-	//				xmf3SurfaceNormal = pTerrain->GetNormal(xPosition, zPosition); 
-	//				xmf3RotateAxis = Vector3::CrossProduct(XMFLOAT3(0.0f, 1.0f, 0.0f), xmf3SurfaceNormal);
-	//				if (Vector3::IsZero(xmf3RotateAxis))
-	//					xmf3RotateAxis = XMFLOAT3(0.0f, 1.0f, 0.0f);
-	//				
-	//				float fAngle = acos(Vector3::DotProduct(XMFLOAT3(0.0f, 1.0f, 0.0f), xmf3SurfaceNormal));
-
-	//				pRotatingObject->Rotate(&xmf3RotateAxis, XMConvertToDegrees(fAngle));
-	//			} 
-	//			pRotatingObject->SetRotationAxis(XMFLOAT3(0.0f, 1.0f, 0.0f));
-	//			pRotatingObject->SetRotationSpeed(36.0f * (i % 10) + 36.0f);
-	//			m_ppObjects[i++] = pRotatingObject;
-	//		}
-	//	}
-	//}
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
-
 }
 
 void CObjectsShader::ReleaseObjects() {
@@ -380,15 +329,35 @@ void CObjectsShader::ReleaseObjects() {
 		delete[] m_ppObjects; 
 	} 
 
+	for (int i = 0; i < m_nItemObjects; ++i) {
+		delete m_ppItemObjects[i];
+	}
 }
+
+extern CPlayer* m_ePlayer;
 
 void CObjectsShader::AnimateObjects(float fTimeElapsed) { 
 
-	for (int j = 0; j < m_nObjects; j++) 
-	{ 
-		m_ppObjects[j]->Animate(fTimeElapsed); 
-	}
+	for (int i = 0; i < 10; ++i) {
+		float fHeight = pMap->GetHeight(m_ppObjects[i]->GetPosition().x, m_ppObjects[i]->GetPosition().z) + 7.0f;
 
+		m_ppObjects[i]->SetPosition(Vector3::XMVectorToFloat3(XMVectorLerp(XMLoadFloat3(&m_ppObjects[i]->GetPosition()), XMLoadFloat3(&m_ePlayer->GetPosition()), num[i])));
+
+		if (m_ppObjects[i]->GetPosition().y < fHeight)
+		{
+			m_ppObjects[i]->SetPosition(m_ppObjects[i]->GetPosition().x, fHeight, m_ppObjects[i]->GetPosition().z);
+		}
+
+		Collision();
+
+		if (num[i] < 1.0f) {
+			num[i] += 0.000001f;
+		}
+
+		else {
+			num[i] = 0;
+		}
+	}
 }
 
 void CObjectsShader::ReleaseUploadBuffers() { 
@@ -411,7 +380,46 @@ void CObjectsShader::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera 
 		} 
 	}
 
+	for (int i = 0; i < m_nItemObjects; ++i) {
+		m_ppItemObjects[i]->Render(pd3dCommandList, pCamera);
+	}
 }
 
-/////////////////////////////////////////////////////////////////
+void CObjectsShader::Collision()
+{
+	m_ePlayer->m_xmPBoundingBox = BoundingOrientedBox(XMFLOAT3(m_ePlayer->GetPosition()), XMFLOAT3(8.0f, 2.0f, 3.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	m_ePlayer->m_pObjectCollided = NULL;
 
+	for (int i = 0; i < 10; ++i) {
+		m_ppObjects[i]->m_xmBoundingBox = BoundingBox(XMFLOAT3(m_ppObjects[i]->GetPosition()), XMFLOAT3(12.0f, 3.0f, 10.0f));
+		m_ppObjects[i]->m_pObjectCollided = NULL;
+
+		if (m_ppObjects[i]->m_xmBoundingBox.Intersects(m_ePlayer->m_xmPBoundingBox)) {
+			m_ppObjects[i]->m_pObjectCollided = m_ePlayer;
+		}
+
+		if (m_ppObjects[i]->m_pObjectCollided) {
+			m_ppObjects[i]->SetPosition(uid_position_x(dre), 500.0f, uid_position_z(dre));
+			num[i] = 0;
+		}
+	}
+
+	for (int i = 0; i < 100; ++i) {
+		m_ppItemObjects[i]->m_xmBoundingBox = BoundingBox(XMFLOAT3(m_ppItemObjects[i]->GetPosition()), XMFLOAT3(6.0f, 6.0f, 6.0f));
+		m_ppItemObjects[i]->m_pObjectCollided = NULL;
+
+		if (m_ppItemObjects[i]->m_xmBoundingBox.Intersects(m_ePlayer->m_xmPBoundingBox)) {
+			m_ppItemObjects[i]->m_pObjectCollided = m_ePlayer;
+		}
+
+		for (int j = 0; j < 10; ++j) {
+			if (m_ppItemObjects[i]->m_xmBoundingBox.Intersects(m_ppObjects[j]->m_xmBoundingBox)) {
+				m_ppItemObjects[i]->m_pObjectCollided = m_ppObjects[j];
+			}
+		}
+
+		if (m_ppItemObjects[i]->m_pObjectCollided) {
+			m_ppItemObjects[i]->SetPosition(0.0f, 0.0f, 0.0f);
+		}
+	}
+}
